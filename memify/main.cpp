@@ -3,11 +3,11 @@
 int main()
 {
 	memify mem("cs2.exe");
-	uintptr_t base = mem.GetBase();
+	uintptr_t base = mem.GetBase("client.dll");
 
 	while (true)
 	{
-		if (mem.ProcessIsOpen())
+		if (mem.ProcessIsOpen("cs2.exe"))
 			continue;
 
 		if (mem.InForeground())
