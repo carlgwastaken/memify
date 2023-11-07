@@ -131,6 +131,9 @@
     <ClInclude Include="mem\handle_hijack.h" />
     <ClInclude Include="mem\memory.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
