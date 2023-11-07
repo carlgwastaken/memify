@@ -1,4 +1,4 @@
-# Memify | Memory 
+# Memify | Memory Manipulation
 
 Simple (Shitty) Memory Class ✔
 
