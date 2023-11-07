@@ -1,6 +1,6 @@
 # Memify | Memory 
 
-Shitty Memory Class ✔
+Simple (Shitty) Memory Class ✔
 
 Fully Pastable 🖨
 
