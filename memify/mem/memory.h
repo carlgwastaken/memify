@@ -2,7 +2,7 @@
 // literally all of these are in handle_hijack.h, so feel free to skip out on including them here and just handle_hijack.h for includes
 // but for simplicity i will include them here too.
 #include <Windows.h> // RPM + WPM
-#include <TlHelp32.h>
+#include <TlHelp32.h> 
 #include <string> // couldn't get processName.compare to work with char, probably some other method but :shrug:
 
 #include "handle_hijack.h"
@@ -26,7 +26,7 @@ private:
 	HANDLE handle = 0;
 	DWORD processID = 0;
 
-	uintptr_t GetProcessId(std::string processName = "cs2.exe")
+	uintptr_t GetProcessId(std::string_view processName)
 	{
 		PROCESSENTRY32 pe; // Processentry holds processID.
 		
@@ -50,15 +50,16 @@ private:
 		if (ss) // snapshot handle
 			CloseHandle(ss); // close it since we have no use for it anymore.
 
-		if (result != 0) // checks if we have a valid result
+		if (result != 0) { // checks if we have a valid result
 			return result; // if we do, return processID
-		else
-			return false; // add some more debug here if you want
+		} 
+	
+		return false; // add some more debug here if you want
 	}
 
 	// make BaseModule private since i'd rather shorthen name in public, and just return this function but thats your choice
 	// move it to public if you want to decrease lines
-	uintptr_t GetBaseModule(std::string moduleName) // default is defined later on
+	uintptr_t GetBaseModule(std::string_view moduleName) // default is defined later on
 	{
 		MODULEENTRY32 pe;
 
@@ -84,10 +85,11 @@ private:
 		if (ss)
 			CloseHandle(ss);
 
-		if (result != 0)
+		if (result != 0) {
 			return result;
-		else
-			return false;
+		}
+		
+		return false;
 	}
 
 	pNtReadVirtualMemory VRead; // define
@@ -96,7 +98,7 @@ private:
 public:
 	
 	// constructor opens handle and you save one line!!!! (will make your spaghetti code 10x better)
-	memify(std::string processName)
+	memify(std::string_view processName)
 	{
 		VRead = (pNtReadVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory");
 		VWrite = (pNtWriteVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory");
@@ -144,7 +146,7 @@ public:
 	}
 
 	// shorten name here
-	uintptr_t GetBase(std::string moduleName = "client.dll")
+	uintptr_t GetBase(std::string_view moduleName)
 	{
 		return GetBaseModule(moduleName);
 	}
@@ -175,13 +177,13 @@ public:
 			return false;
 	}
 
-	// utilities now, nothing requred
-	bool ProcessIsOpen(std::string processName = "cs2.exe")
+	// util
+	bool ProcessIsOpen(std::string_view processName)
 	{
 		if (GetProcessId(processName) != 0)
 			return true;
-		else
-			return false;
+		
+		return false;
 	}
 
 	bool InForeground()
