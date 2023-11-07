@@ -9,7 +9,7 @@ Incorporates Handle Hijacking 🦺
 Comes with some utility 🛠
 
 ## Requirements
-Uses Multibyte + C++20
+Uses Multibyte & C++20
 
 ## Usage
 ```cpp
