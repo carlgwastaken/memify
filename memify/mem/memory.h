@@ -26,6 +26,10 @@ private:
 	HANDLE handle = 0;
 	DWORD processID = 0;
 
+	pNtReadVirtualMemory VRead; // define Virtual Read + Virtual Write
+	pNtWriteVirtualMemory VWrite;
+
+
 	uintptr_t GetProcessId(std::string_view processName)
 	{
 		PROCESSENTRY32 pe; // Processentry holds processID.
@@ -91,10 +95,6 @@ private:
 		
 		return false;
 	}
-
-	pNtReadVirtualMemory VRead; // define
-	pNtWriteVirtualMemory VWrite;
-
 public:
 	
 	// constructor opens handle and you save one line!!!! (will make your spaghetti code 10x better)
