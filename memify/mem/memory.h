@@ -103,7 +103,7 @@ public:
 		VRead = (pNtReadVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory");
 		VWrite = (pNtWriteVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory");
 
-		processID = GetProcessId(processName); // default is "cs2.exe", so we can leave this empty if we want
+		processID = GetProcessId(processName);
 
 		if (processID)
 		{
