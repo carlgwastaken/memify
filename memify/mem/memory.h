@@ -29,11 +29,10 @@ private:
 	pNtReadVirtualMemory VRead; // define Virtual Read + Virtual Write
 	pNtWriteVirtualMemory VWrite;
 
-
 	uintptr_t GetProcessId(std::string_view processName)
 	{
 		PROCESSENTRY32 pe; // Processentry holds processID.
-		
+
 		auto ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, processID);
 
 		uintptr_t result = 0;
@@ -81,18 +80,18 @@ private:
 				}
 			}
 		}
-			
+
 		if (ss)
 			CloseHandle(ss);
 
 		if (result != 0) {
 			return result;
 		}
-		
+
 		return false;
 	}
 public:
-	
+
 	// constructor opens handle and you save one line!!!! (will make your spaghetti code 10x better)
 	memify(std::string_view processName)
 	{
@@ -151,15 +150,16 @@ public:
 	template <typename T> // use types which are defined later on, so it's compatible with alot of shit.
 	T Read(uintptr_t address)
 	{
-		T buffer { };
+		T buffer{ };
 		VRead(handle, (void*)address, &buffer, sizeof(T), 0);
 		return buffer;
 	}
 
 	template <typename T>
-	T Write(uintptr_t address, T value) 
+	T Write(uintptr_t address, T value)
 	{
 		VWrite(handle, (void*)address, &value, sizeof(T), NULL);
+		return value;
 	}
 
 	// for reading structs and strings and shit
@@ -192,9 +192,9 @@ public:
 		char title[256];
 		GetWindowText(current, title, sizeof(title));
 
-		if (strstr(title, "Counter-Strike 2") != nullptr) 
+		if (strstr(title, "Counter-Strike 2") != nullptr)
 			return true;
-			
+
 		return false;
 	}
 
