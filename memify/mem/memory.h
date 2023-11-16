@@ -26,7 +26,7 @@ private:
 	HANDLE handle = 0;
 	DWORD processID = 0;
 
-	uintptr_t GetProcessId(std::string processName = "cs2.exe")
+	uintptr_t GetProcessId(std::string processName)
 	{
 		PROCESSENTRY32 pe; // Processentry holds processID.
 		
@@ -52,8 +52,8 @@ private:
 
 		if (result != 0) // checks if we have a valid result
 			return result; // if we do, return processID
-		else
-			return false; // add some more debug here if you want
+			
+		return false; // add some more debug here if you want
 	}
 
 	// make BaseModule private since i'd rather shorthen name in public, and just return this function but thats your choice
@@ -86,8 +86,6 @@ private:
 
 		if (result != 0)
 			return result;
-		else
-			return false;
 	}
 
 	pNtReadVirtualMemory VRead; // define
@@ -144,7 +142,7 @@ public:
 	}
 
 	// shorten name here
-	uintptr_t GetBase(std::string moduleName = "client.dll")
+	uintptr_t GetBase(std::string moduleName)
 	{
 		return GetBaseModule(moduleName);
 	}
@@ -159,7 +157,7 @@ public:
 	}
 
 	template <typename T>
-	T Write(T address)
+	T Write(uintptr_t address) // uintptrs can be any size and basically any pointer (i think)
 	{
 		T buffer { };
 		VWrite(handle, (void*)address, &buffer, sizeof(T), 0;
@@ -171,17 +169,17 @@ public:
 		SIZE_T bytesRead;
 		if (VRead(handle, (void*)address, &buffer, static_cast<ULONG>(size), (PULONG)&bytesRead))
 			return bytesRead == size;
-		else
-			return false;
+
+		return false;
 	}
 
 	// utilities now, nothing requred
-	bool ProcessIsOpen(std::string processName = "cs2.exe")
+	bool ProcessIsOpen(std::string processName)
 	{
 		if (GetProcessId(processName) != 0)
 			return true;
-		else
-			return false;
+			
+		return false;
 	}
 
 	bool InForeground()
@@ -195,8 +193,8 @@ public:
 
 		if (strstr(title, "Counter-Strike 2") != nullptr) 
 			return true;
-		else
-			return false;
+			
+		return false;
 	}
 
 };
