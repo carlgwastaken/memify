@@ -2,7 +2,7 @@
 // literally all of these are in handle_hijack.h, so feel free to skip out on including them here and just handle_hijack.h for includes
 // but for simplicity i will include them here too.
 #include <Windows.h> // RPM + WPM
-#include <TlHelp32.h>
+#include <TlHelp32.h> 
 #include <string> // couldn't get processName.compare to work with char, probably some other method but :shrug:
 
 #include "handle_hijack.h"
@@ -26,7 +26,11 @@ private:
 	HANDLE handle = 0;
 	DWORD processID = 0;
 
-	uintptr_t GetProcessId(std::string processName)
+	pNtReadVirtualMemory VRead; // define Virtual Read + Virtual Write
+	pNtWriteVirtualMemory VWrite;
+
+
+	uintptr_t GetProcessId(std::string_view processName)
 	{
 		PROCESSENTRY32 pe; // Processentry holds processID.
 		
@@ -50,15 +54,12 @@ private:
 		if (ss) // snapshot handle
 			CloseHandle(ss); // close it since we have no use for it anymore.
 
-		if (result != 0) // checks if we have a valid result
-			return result; // if we do, return processID
-			
-		return false; // add some more debug here if you want
+		return result; // add some more debug here if you want
 	}
 
 	// make BaseModule private since i'd rather shorthen name in public, and just return this function but thats your choice
 	// move it to public if you want to decrease lines
-	uintptr_t GetBaseModule(std::string moduleName) // default is defined later on
+	uintptr_t GetBaseModule(std::string_view moduleName) // default is defined later on
 	{
 		MODULEENTRY32 pe;
 
@@ -84,22 +85,21 @@ private:
 		if (ss)
 			CloseHandle(ss);
 
-		if (result != 0)
+		if (result != 0) {
 			return result;
+		}
+		
+		return false;
 	}
-
-	pNtReadVirtualMemory VRead; // define
-	pNtWriteVirtualMemory VWrite;
-
 public:
 	
 	// constructor opens handle and you save one line!!!! (will make your spaghetti code 10x better)
-	memify(std::string processName)
+	memify(std::string_view processName)
 	{
 		VRead = (pNtReadVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory");
 		VWrite = (pNtWriteVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory");
 
-		processID = GetProcessId("cs2.exe"); // default is "cs2.exe", so we can leave this empty if we want
+		processID = GetProcessId(processName);
 
 		if (processID)
 		{
@@ -142,14 +142,14 @@ public:
 	}
 
 	// shorten name here
-	uintptr_t GetBase(std::string moduleName)
+	uintptr_t GetBase(std::string_view moduleName)
 	{
 		return GetBaseModule(moduleName);
 	}
 
 	// read
 	template <typename T> // use types which are defined later on, so it's compatible with alot of shit.
-	T Read(T address)
+	T Read(uintptr_t address)
 	{
 		T buffer { };
 		VRead(handle, (void*)address, &buffer, sizeof(T), 0);
@@ -157,10 +157,9 @@ public:
 	}
 
 	template <typename T>
-	T Write(uintptr_t address) // uintptrs can be any size and basically any pointer (i think)
+	T Write(uintptr_t address, T value) 
 	{
-		T buffer { };
-		VWrite(handle, (void*)address, &buffer, sizeof(T), 0;
+		VWrite(handle, (void*)address, &value, sizeof(T), NULL);
 	}
 
 	// for reading structs and strings and shit
@@ -174,11 +173,13 @@ public:
 	}
 
 	// utilities now, nothing requred
-	bool ProcessIsOpen(std::string processName)
+
+	// util
+	bool ProcessIsOpen(std::string_view processName)
 	{
 		if (GetProcessId(processName) != 0)
 			return true;
-			
+
 		return false;
 	}
 
