@@ -33,7 +33,7 @@ private:
 	{
 		PROCESSENTRY32 pe; // Processentry holds processID.
 
-		auto ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, processID);
+		HANDLE ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, processID);
 
 		uintptr_t result = 0;
 
@@ -53,7 +53,7 @@ private:
 		if (ss) // snapshot handle
 			CloseHandle(ss); // close it since we have no use for it anymore.
 
-		return result; // add some more debug here if you want
+		return result;
 	}
 
 	// make BaseModule private since i'd rather shorthen name in public, and just return this function but thats your choice
@@ -74,7 +74,7 @@ private:
 				{
 					// modbaseaddr is a BYTE, so use reinterpret_cast
 					// i tried using BYTE *, but i'm slow and forgot to change the name of the shortened version in public
-					// so it should work using BYTE *, but don't quote me on that 
+					// so it should work using BYTE *, but don't quote me on that, also didn't want to risk. but try it!
 					result = reinterpret_cast<uintptr_t>(pe.modBaseAddr);
 					break;
 				}
@@ -84,11 +84,7 @@ private:
 		if (ss)
 			CloseHandle(ss);
 
-		if (result != 0) {
-			return result;
-		}
-
-		return false;
+		return result;
 	}
 public:
 
@@ -100,7 +96,7 @@ public:
 
 		processID = GetProcessId(processName);
 
-		if (processID)
+		if (processID != 0)
 		{
 			PROCESSENTRY32 pe;
 
@@ -130,7 +126,6 @@ public:
 	}
 
 	// deconstructor, you can just use a void Exit(), which is less to type but whatever
-	// an actual exit function is only useful if you have a really long name.
 	~memify()
 	{
 		if (handle)
@@ -172,15 +167,11 @@ public:
 		return false;
 	}
 
-	// utilities now, nothing requred
+	// utilities, shit that isn't required but nice to have
 
-	// util
-	bool ProcessIsOpen(std::string_view processName)
+	bool ProcessIsOpen(const std::string_view processName)
 	{
-		if (GetProcessId(processName) != 0)
-			return true;
-
-		return false;
+		return GetProcessId(processName) != 0;
 	}
 
 	bool InForeground()
@@ -197,5 +188,4 @@ public:
 
 		return false;
 	}
-
 };

@@ -5,11 +5,13 @@ int main()
 	memify mem("cs2.exe");
 	uintptr_t base = mem.GetBase("client.dll");
 
+	while (!mem.ProcessIsOpen("cs2.exe")) {
+		std::cout << "Couldn't find CS2, waiting..." << std::endl;
+		Sleep(2000);
+	}
+
 	while (true)
 	{
-		if (mem.ProcessIsOpen("cs2.exe"))
-			continue;
-
 		if (mem.InForeground())
 			continue;
 
