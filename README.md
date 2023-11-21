@@ -19,11 +19,11 @@ Uses Multibyte & C++20
 int main()
 {
 	memify mem("cs2.exe");
-	uintptr_t base = mem.GetBase();
+	uintptr_t base = mem.GetBase("client.dll");
 
 	while (true)
 	{
-		if (mem.ProcessIsOpen())
+		if (mem.ProcessIsOpen("cs2.exe"))
 			continue;
 
 		if (mem.InForeground())
@@ -44,7 +44,8 @@ int main()
 			str = buf;
 		}
 
-		mem.Write<uintptr_t>(base + 0x1337);
+		mem.Write<uintptr_t>(base + 0x1337, 5); // address, then the value u want to change it to
+		// keep in mind it patches the value / changes it, doesn't add on to it.
 	}
 	//exit
 	mem.~memify();
