@@ -1,9 +1,10 @@
 #pragma once
 // literally all of these are in handle_hijack.h, so feel free to skip out on including them here and just handle_hijack.h for includes
-// but for simplicity i will include them here too.
+// but for simplicity i will include them here too. *except for psapi.h*
 #include <Windows.h> // RPM + WPM
 #include <TlHelp32.h> 
 #include <string> // couldn't get processName.compare to work with char, probably some other method but :shrug:
+#include <Psapi.h> // enumprocessmodules
 
 #include "handle_hijack.h"
 
@@ -31,60 +32,56 @@ private:
 
 	uintptr_t GetProcessId(std::string_view processName)
 	{
-		PROCESSENTRY32 pe; // Processentry holds processID.
+		DWORD ids[1024];
+		DWORD neededId;
 
-		HANDLE ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, processID);
-
-		uintptr_t result = 0;
-
-		if (ss != INVALID_HANDLE_VALUE)
+		if (EnumProcesses(ids, sizeof(ids), &neededId)) 
 		{
-			while (Process32Next(ss, &pe))
+			int processCount = neededId / sizeof(DWORD);
+
+			for (int i = 0; i < processCount; ++i)
 			{
-				if (!processName.compare(pe.szExeFile))
+				if (handle != 0)
 				{
-					result = pe.th32ProcessID;
-					break;
+					char moduleName[MAX_PATH];
+					if (GetModuleBaseNameA(handle, nullptr, moduleName, sizeof(moduleName)))
+					{
+						if (!processName.compare(moduleName)) {
+							return ids[i];
+						}
+					}
 				}
 			}
 		}
 
-		// we have processID.
-		if (ss) // snapshot handle
-			CloseHandle(ss); // close it since we have no use for it anymore.
-
-		return result;
+		return 0;
 	}
 
 	// make BaseModule private since i'd rather shorthen name in public, and just return this function but thats your choice
 	// move it to public if you want to decrease lines
-	uintptr_t GetBaseModule(std::string_view moduleName) // default is defined later on
+	uintptr_t GetBaseModule(std::string_view moduleName)
 	{
-		MODULEENTRY32 pe;
+		HMODULE modules[1024];
+		DWORD neededmodule; 
 
-		auto ss = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processID); // holds modules in all process
-
-		uintptr_t result = 0;
-
-		if (ss != INVALID_HANDLE_VALUE)
+		if (EnumProcessModules(handle, modules, sizeof(modules), &neededmodule))
 		{
-			while (Module32Next(ss, &pe))
+			int moduleCount = neededmodule / sizeof(HMODULE);
+
+			for (int i = 0; i < moduleCount; ++i)
 			{
-				if (!moduleName.compare(pe.szModule))
+				char buffer[MAX_PATH];
+
+				if (GetModuleBaseNameA(handle, modules[i], buffer, sizeof(buffer)))
 				{
-					// modbaseaddr is a BYTE, so use reinterpret_cast
-					// i tried using BYTE *, but i'm slow and forgot to change the name of the shortened version in public
-					// so it should work using BYTE *, but don't quote me on that, also didn't want to risk. but try it!
-					result = reinterpret_cast<uintptr_t>(pe.modBaseAddr);
-					break;
+					if (!moduleName.compare(buffer)) {
+						return reinterpret_cast<uintptr_t>(modules[i]);
+					}
 				}
 			}
 		}
 
-		if (ss)
-			CloseHandle(ss);
-
-		return result;
+		return 0;
 	}
 public:
 
