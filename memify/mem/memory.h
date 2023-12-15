@@ -95,30 +95,13 @@ public:
 
 		if (processID != 0)
 		{
-			PROCESSENTRY32 pe;
+			handle = hj::HijackExistingHandle(processID);
 
-			auto ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, processID);
-
-			if (ss != INVALID_HANDLE_VALUE)
+			if (!hj::IsHandleValid(handle))
 			{
-				while (Process32Next(ss, &pe))
-				{
-					if (!processName.compare(pe.szExeFile))
-					{
-						handle = hj::HijackExistingHandle(processID);
-						break;
-
-						// i don't recommend falling back to OpenProcess, since that is flagged(?)
-						//if (!hj::IsHandleValid(handle))
-						//{
-						//	OpenProcess(PROCESS_ALL_ACCESS, false, processID);
-						//}
-					}
-				}
+				std::cout << "Failed Handle Hijacking." << std::endl;
+				// open handle with OpenProcess
 			}
-
-			if (ss)
-				CloseHandle(ss);
 		}
 	}
 
