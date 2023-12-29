@@ -141,8 +141,8 @@ public:
 	bool ReadRaw(uintptr_t address, void* buffer, size_t size)
 	{
 		SIZE_T bytesRead;
-		if (VRead(handle, (void*)address, &buffer, static_cast<ULONG>(size), (PULONG)&bytesRead))
-			return bytesRead == size;
+		if (VRead(handle, (void*)address, buffer, static_cast<ULONG>(size), (PULONG)&bytesRead))
+			return bytesRead = size;
 
 		return false;
 	}
