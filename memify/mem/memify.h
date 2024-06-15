@@ -32,6 +32,24 @@ private:
 
 	uintptr_t GetProcessId(std::string_view processName)
 	{
+		if (!handle) {
+			// define processentry32
+			PROCESSENTRY32 pe;
+			pe.dwSize = sizeof(PROCESSENTRY32);
+
+			// create a snapshot handle
+			HANDLE ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+			// loop through all process
+			while (Process32Next(ss, &pe)) {
+				// compare program names to processName
+				if (!processname.compare(pe.szExeFile)) {
+					processID = pe.th32ProcessID;
+					return processID;
+				}
+			}
+		}
+		
 		DWORD ids[1024];
 		DWORD neededId;
 
