@@ -43,7 +43,7 @@ private:
 			// loop through all process
 			while (Process32Next(ss, &pe)) {
 				// compare program names to processName
-				if (!processname.compare(pe.szExeFile)) {
+				if (!processName.compare(pe.szExeFile)) {
 					processID = pe.th32ProcessID;
 					return processID;
 				}
