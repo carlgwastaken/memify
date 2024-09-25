@@ -51,5 +51,4 @@ int main()
 		// keep in mind it patches the value / changes it, doesn't add on to it.
 	}
 	//exit
-	mem.~memify();
 }
