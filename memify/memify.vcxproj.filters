@@ -18,7 +18,7 @@
     <ClInclude Include="mem\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mem\handle_hijack.h">
+    <ClInclude Include="mem\memify.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

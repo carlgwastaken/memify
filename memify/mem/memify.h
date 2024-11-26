@@ -1,12 +1,9 @@
 #pragma once
-// literally all of these are in handle_hijack.h, so feel free to skip out on including them here and just handle_hijack.h for includes
-// but for simplicity i will include them here too. *except for psapi.h*
 #include <Windows.h> // RPM + WPM
-#include <TlHelp32.h> 
-#include <string> // couldn't get processName.compare to work with char, probably some other method but :shrug:
+#include <TlHelp32.h> // getting processIds.
 #include <Psapi.h> // enumprocessmodules
-
-#include "handle_hijack.h"
+#include <string> // generally nicer to work with than chars, but that's your preference.
+#include <span>
 
 /*
 Created By https://github.com/carlgwastaken/
@@ -27,56 +24,30 @@ private:
 	HANDLE handle = 0;
 	DWORD processID = 0;
 
-	pNtReadVirtualMemory VRead; // define Virtual Read + Virtual Write
+	// define Virtual Read + Virtual Write
+	pNtReadVirtualMemory VRead; 
 	pNtWriteVirtualMemory VWrite;
 
 	uintptr_t GetProcessId(std::string_view processName)
 	{
-		if (!handle) {
-			// define processentry32
-			PROCESSENTRY32 pe;
-			pe.dwSize = sizeof(PROCESSENTRY32);
+		// define processentry32
+		PROCESSENTRY32 pe;
+		pe.dwSize = sizeof(PROCESSENTRY32);
 
-			// create a snapshot handle
-			HANDLE ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		// create a snapshot handle
+		HANDLE ss = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 
-			// loop through all process
-			while (Process32Next(ss, &pe)) {
-				// compare program names to processName
-				if (!processName.compare(pe.szExeFile)) {
-					processID = pe.th32ProcessID;
-					return processID;
-				}
+		// loop through all process
+		while (Process32Next(ss, &pe)) {
+			// compare program names to processName
+			if (!processName.compare(pe.szExeFile)) {
+				processID = pe.th32ProcessID;
+				return processID;
 			}
 		}
-		
-		DWORD ids[1024];
-		DWORD neededId;
-
-		if (EnumProcesses(ids, sizeof(ids), &neededId)) 
-		{
-			int processCount = neededId / sizeof(DWORD);
-
-			for (int i = 0; i < processCount; ++i)
-			{
-				if (handle != 0)
-				{
-					char moduleName[MAX_PATH];
-					if (GetModuleBaseNameA(handle, nullptr, moduleName, sizeof(moduleName)))
-					{
-						if (!processName.compare(moduleName)) {
-							return ids[i];
-						}
-					}
-				}
-			}
-		}
-
-		return 0;
 	}
 
-	// make BaseModule private since i'd rather shorthen name in public, and just return this function but thats your choice
-	// move it to public if you want to decrease lines
+	// uses already open handle to enumerate, you could also use PROCESSENTRY32 here.
 	uintptr_t GetBaseModule(std::string_view moduleName)
 	{
 		HMODULE modules[1024];
@@ -102,6 +73,26 @@ private:
 		return 0;
 	}
 public:
+	// if you have an array of possible process names you want to loop through, and if one matches it will grab the handle for that.
+	// this could be used if for example working with a mod that uses the base game for its gameplay, or a game that you usually play on multiple versions on.
+	// keep in mind, this can get annoying with offsets VERY fast.
+	memify(std::span<std::string> processes) {
+		for (auto& name : processes) {
+			processID = GetProcessId(name);
+
+			if (processID != 0) {
+				handle = OpenProcess(PROCESS_ALL_ACCESS, 0, processID);
+				if (handle) {
+					break;
+				}
+				else {
+					// somehow we got a valid processID but not a valid handle?
+					continue;
+				}
+			}
+			continue;
+		}
+	}
 
 	// constructor opens handle and you save one line!!!! (will make your spaghetti code 10x better)
 	memify(std::string_view processName)
@@ -113,24 +104,18 @@ public:
 
 		if (processID != 0)
 		{
-			handle = hj::HijackExistingHandle(processID);
-
-			if (!hj::IsHandleValid(handle))
-			{
-				std::cout << "Failed Handle Hijacking." << std::endl;
-				// open handle with OpenProcess
+			handle = OpenProcess(PROCESS_ALL_ACCESS, 0, processID);
+			if (!handle) {
+				printf("[>>] Failed to open handle to process.");
 			}
 		}
 	}
 
-	// deconstructor, you can just use a void Exit(), which is less to type but whatever
+	// deconstructor, called automatically when closing.
 	~memify()
 	{
 		if (handle)
 			CloseHandle(handle);
-
-		if (hj::HijackedHandle)
-			CloseHandle(hj::HijackedHandle);
 	}
 
 	// shorten name here
@@ -172,7 +157,7 @@ public:
 		return GetProcessId(processName) != 0;
 	}
 
-	bool InForeground()
+	bool InForeground(const std::string& windowName)
 	{
 		// just takes Counter-Strike 2 but change to whatever u want, or implement an input you can do that too
 		// maybe get the foreground window and then compare it to your own window, use processID, anything u want
@@ -181,7 +166,7 @@ public:
 		char title[256];
 		GetWindowText(current, title, sizeof(title));
 
-		if (strstr(title, "Counter-Strike 2") != nullptr)
+		if (strstr(title, windowName.c_str()) != nullptr)
 			return true;
 
 		return false;
