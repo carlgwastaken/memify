@@ -25,7 +25,7 @@ memify mem("process.exe");
 or multiple names!
 
 ```cpp
-std::string processes[] = {"process1.exe", "process2.exe", "process3.exe"};
+std::vector<std::string> processes;
 memify mem(processes);
 ```
 
