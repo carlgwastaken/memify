@@ -3,7 +3,7 @@
 #include <TlHelp32.h> // getting processIds.
 #include <Psapi.h> // enumprocessmodules
 #include <string> // generally nicer to work with than chars, but that's your preference.
-#include <span>
+#include <vector> // std::vector
 
 /*
 Created By https://github.com/carlgwastaken/
@@ -76,7 +76,7 @@ public:
 	// if you have an array of possible process names you want to loop through, and if one matches it will grab the handle for that.
 	// this could be used if for example working with a mod that uses the base game for its gameplay, or a game that you usually play on multiple versions on.
 	// keep in mind, this can get annoying with offsets VERY fast.
-	memify(std::span<std::string> processes) {
+	memify(std::vector<std::string> processes) {
 		for (auto& name : processes) {
 			processID = GetProcessId(name);
 
