@@ -13,7 +13,7 @@ Multibyte support
 ## Usage
 Simply include memify/memify.h into your process.
 ```cpp
-#include "memify/memify.h"
+#include "mem/memify.h"
 ```
 
 and pass in the process name
