@@ -77,6 +77,9 @@ public:
 	// this could be used if for example working with a mod that uses the base game for its gameplay, or a game that you usually play on multiple versions on.
 	// keep in mind, this can get annoying with offsets VERY fast.
 	memify(std::vector<std::string> processes) {
+		VRead = (pNtReadVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory");
+		VWrite = (pNtWriteVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory");
+
 		for (auto& name : processes) {
 			processID = GetProcessId(name);
 
